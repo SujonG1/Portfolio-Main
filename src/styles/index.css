@@ -1,0 +1,60 @@
+@import url("https://fonts.googleapis.com/css2?family=Anta&family=Boldonse&family=Faculty+Glyphic&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Sree+Krushnadevaraya&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anta&family=Boldonse&family=Faculty+Glyphic&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Sree+Krushnadevaraya&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anta&family=Boldonse&family=Faculty+Glyphic&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Sree+Krushnadevaraya&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anta&family=Boldonse&family=Faculty+Glyphic&family=Goldman:wght@400;700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Sree+Krushnadevaraya&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  --font-poppins: "Poppins", sans-serif;
+  --font-roboto: "Roboto Condensed", sans-serif;
+  --font-anta: "Anta", sans-serif;
+  --font-grotesk: "Space Grotesk", sans-serif;
+}
+
+/* src/styles/global.css */
+@import "tailwindcss";
+
+/* 1. Global Browser Engine Override (Locks down Chrome, Edge, Safari, Brave) */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 20px !important;
+    height: 12px !important;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0b0f19 !important; /* Deep dark slate background */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg,
+      #5486cc 0%,
+      #4b0ae0 100%
+    ) !important; /* Slate to Purple */
+    border-radius: 100px !important;
+    border: 3px solid #0b0f19 !important; /* Padding spacing trick */
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%) !important;
+  }
+
+  /* 2. Firefox Engine Fallback */
+  html,
+  body,
+  * {
+    scrollbar-width: 150px !important;
+    scrollbar-color: #8b5cf6 #0b0f19 !important;
+  }
+
+  @layer utilities {
+    .hero-btn button {
+      /* The !important tag forces the browser to drop GSAP's inline styles ONLY during a hover state */
+      transition: transform 0.3s ease-in-out !important;
+    }
+    .hero-btn button:hover {
+      transform: translateY(-8px) !important;
+    }
+  }
+}
