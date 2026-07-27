@@ -1,7 +1,7 @@
-
 import Hero from './hero/Hero'
 import AboutPrev from './about-prev/AboutPrev'
 import AchievePrev from './achievement-prev/AchievePrev'
+
 
 const Home = () => {
   return (
