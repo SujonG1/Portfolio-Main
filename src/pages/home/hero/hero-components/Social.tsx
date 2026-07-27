@@ -8,7 +8,7 @@ const Social = () => {
   useIntroAnimation(container)
 
   return (
-    <div className="social-body w-15 h-70 absolute bg-gradient-to-tr from-sky-400 to-purple-800 backdrop-blur-md top-1/8 right-10 rounded-2xl flex justify-center items-center z-50"
+    <div className="social-body w-15 h-70 absolute bg-gradient-to-tr from-sky-400 to-purple-800 backdrop-blur-md top-[5%] right-10 rounded-2xl flex justify-center items-center z-50"
     ref={container}>
       <div className="bg-slate-950/70 backdrop-blur-md h-67 w-12 rounded-2xl flex flex-col justify-between p-4 text-2xl items-center text-slate-400 z-500">
         <a 

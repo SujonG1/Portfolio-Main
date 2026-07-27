@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 export interface Achievement {
   year: string;
   heading: string;
   bio: string;
   grade: string;
+}
+
+export interface TimelineElements {
+  track: HTMLDivElement | null;
+  cards: (HTMLDivElement | null)[];
+  positions: number[];
 }
 
 const ACHIEVEMENTS: Achievement[] = [
@@ -18,82 +24,91 @@ const ACHIEVEMENTS: Achievement[] = [
     year: '2021',
     heading: 'First AI Assistant',
     bio: 'Built an AI Assistant in Python, inspired by JARVIS.',
-    grade: "",
+    grade: "Completed",
   },
   {
     year: '2023',
     heading: 'Class X',
     bio: 'Finished my Secondary Education.',
-    grade: "First Division"
-  },
-  {
-    year: '2024',
-    heading: 'Diploma in Digital Techniques Application',
-    bio: 'Started my Diploma course from Youth Computer Training Centre.',
-    grade: "",
+    grade: "Division: First"
   },
   {
     year: 'Aug 2024',
     heading: 'Smart English Beginners',
     bio: "I passed my Spoken English Beginners course.",
-    grade: "A+"
+    grade: "Grade: A+"
   },
   {
     year: 'Mar 2025',
     heading: 'Diploma Certificate',
     bio: "I passed my Diploma Course in Digitan Techniques Application",
-    grade: "A"
+    grade: "Grade: A"
   },
   {
     year: 'May 2025',
     heading: 'Advance Excel Certificate',
     bio: "I passed my Advance Excel Certification course",
-    grade: "B+"
+    grade: "Grade: B+"
   },
   {
     year: 'Mar 2026',
     heading: 'Smart English Advance',
     bio: "I passed my Spoken English Advance course",
-    grade: "A"
+    grade: "Grade: A"
   },
   {
     year: 'Jun 2026',
     heading: 'Class XII',
     bio: "I passed my Class XII.",
-    grade: "First Division"
+    grade: "Division: First"
   },
   {
     year: 'Jun 2026',
     heading: 'IBM Python for Data Science',
     bio: "I passed my Python for Data Science Course",
-    grade: ""
+    grade: "Completed"
+  },
+  {
+    year: 'Jul 2026',
+    heading: 'Software Engineering Job Simulation',
+    bio: "Created a project of Dataset Dashboard in Quantinum From Forage.",
+    grade: "Completed"
   }
 ];
 
-// Width (in px) reserved per achievement entry along the line.
 const SEGMENT_WIDTH = 260;
-// Extra padding on each end for the START / TO BE CONTINUED labels.
+
 const END_PADDING = 160;
 
 interface TimelineProps {
   entries?: Achievement[];
 }
 
-const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+const Timeline = forwardRef<TimelineElements, TimelineProps>(
+  ({ entries = ACHIEVEMENTS }, ref) => {
+    const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const trackWidth = entries.length * SEGMENT_WIDTH + END_PADDING * 2;
+    const trackRef = useRef<HTMLDivElement>(null);
+    const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  return (
-    <div className="w-full h-full bg-transparent relative overflow-x-auto overflow-y-hidden overflow-x-hidden">
+    const trackWidth = entries.length * SEGMENT_WIDTH + END_PADDING * 2;
+
+    useImperativeHandle(ref, () => ({
+      track: trackRef.current,
+      cards: cardRefs.current,
+      positions: entries.map(
+        (_, i) => END_PADDING + i * SEGMENT_WIDTH + SEGMENT_WIDTH / 2
+      ),
+    }));
+
+    return (
       <div
-        className="relative h-full min-h-[380px]"
+        ref={trackRef}
+        className="relative h-full min-h-[380px] will-change-transform"
         style={{ width: `${trackWidth}px` }}
       >
-        {/* ── the line itself ── */}
         <div className="absolute top-1/2 left-0 -translate-y-1/2 h-0.5 w-full bg-slate-500" />
 
-        {/* START marker */}
         <div
           className="absolute top-1/2 -translate-y-1/2 flex items-center gap-2"
           style={{ left: `${END_PADDING - 150}px` }}
@@ -104,7 +119,6 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
           <span className="w-2 h-2 rounded-full bg-slate-500" />
         </div>
 
-        {/* achievement nodes */}
         {entries.map((entry, i) => {
           const left = END_PADDING + i * SEGMENT_WIDTH + SEGMENT_WIDTH / 2;
           const isAbove = i % 2 === 0;
@@ -116,7 +130,6 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
               className="absolute top-1/2"
               style={{ left: `${left}px`, transform: 'translate(-50%, -50%)' }}
             >
-              {/* pin on the line */}
               <button
                 type="button"
                 onMouseEnter={() => setActiveIndex(i)}
@@ -127,7 +140,6 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
                 aria-label={`${entry.year} — ${entry.heading}`}
               />
 
-              {/* stem connecting pin to card */}
               <div
                 className="absolute left-1/2 w-px bg-slate-500"
                 style={
@@ -137,13 +149,18 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
                 }
               />
 
-              {/* card */}
               <div
                 className={`absolute left-1/2 -translate-x-1/2 w-56 transition-all duration-300 ${
                   isAbove ? 'bottom-[62px]' : 'top-[62px]'
                 } ${isActive ? '-translate-y-0.5' : ''}`}
+                style={{ perspective: '800px' }}
               >
-                <div className="bg-slate-950/20 backdrop-blur-md rounded-md px-4 py-3 shadow-lg shadow-black/20 border border-slate-600">
+                <div
+                  ref={(el) => {
+                    cardRefs.current[i] = el;
+                  }}
+                  className="bg-slate-950/20 backdrop-blur-md rounded-md px-4 py-3 shadow-lg shadow-black/20 border border-slate-600"
+                >
                   <div className="font-mono text-[11px] font-semibold tracking-widest text-slate-400 mb-1">
                     {entry.year}
                   </div>
@@ -153,7 +170,7 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
                   <p className="text-slate-400 text-xs leading-relaxed">
                     {entry.bio}
                   </p>
-                  <h1>{entry.grade}</h1>
+                  <h1 className="text-slate-400 text-l font-bold font-poppins">{entry.grade}</h1>
                 </div>
               </div>
             </div>
@@ -169,8 +186,10 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
           </span>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+Timeline.displayName = 'Timeline';
 
 export default Timeline;
