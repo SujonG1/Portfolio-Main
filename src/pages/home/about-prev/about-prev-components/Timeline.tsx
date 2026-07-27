@@ -159,8 +159,6 @@ const Timeline = ({ entries = ACHIEVEMENTS }: TimelineProps) => {
             </div>
           );
         })}
-
-        {/* TO BE CONTINUED marker */}
         <div
           className="absolute top-1/2 -translate-y-1/2 flex items-center gap-2"
           style={{ left: `${trackWidth - END_PADDING - 30}px` }}
