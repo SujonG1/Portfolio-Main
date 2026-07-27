@@ -21,16 +21,10 @@ const ParticleBackground = () => {
     let resizeTimeout: number | undefined;
     let nextShootingStarAt = performance.now() + 8000 + Math.random() * 6000;
 
-    // Target = raw cursor position. Mouse = eased/smoothed position that
-    // everything actually reacts to, so motion never snaps or jitters.
     const targetMouse = { x: -10000, y: -10000 };
     const mouse = { x: -10000, y: -10000 };
-    let mouseActive = 0; // 0..1, eased presence so the glow fades in/out softly
+    let mouseActive = 0;
 
-    // Eased camera-parallax offset, driven by cursor position relative to
-    // screen center. This is what sells "floating in deep space" rather than
-    // a flat wallpaper: near layers drift opposite the cursor more than far
-    // ones, like a camera dolly with real depth of field.
     const parallaxTarget = { x: 0, y: 0 };
     const parallax = { x: 0, y: 0 };
 
@@ -39,7 +33,6 @@ const ParticleBackground = () => {
     const maxLineDistance = 100;
     const maxLineDistanceSq = maxLineDistance * maxLineDistance;
 
-    // ---------- Glow sprites (pre-rendered once, reused every frame) ----------
     type Sprite = { canvas: HTMLCanvasElement; size: number };
     const spriteCache = new Map<string, Sprite>();
 
@@ -75,9 +68,6 @@ const ParticleBackground = () => {
       return sprite;
     }
 
-    // Pre-rendered 4-point diffraction spike sprite for the handful of
-    // "hero" stars — the classic sci-fi lens-flare look of a bright star
-    // seen through a telescope/camera aperture.
     const spikeSpriteCache = new Map<string, Sprite>();
     function makeSpikeSprite(radius: number, tint: string): Sprite {
       const key = `${radius}-${tint}`;
@@ -135,10 +125,6 @@ const ParticleBackground = () => {
       return sprite;
     }
 
-    // ---------- Stellar palette: realistic hues pushed toward sci-fi vividness ----------
-    // Still rooted in real blackbody classes (cool red/orange dwarfs are the
-    // most common, hot blue giants are rare) but saturation is boosted and a
-    // small fraction are exotic cyan/violet "anomaly" stars for atmosphere.
     type SpectralClass = {
       name: string;
       weight: number;
@@ -176,9 +162,6 @@ const ParticleBackground = () => {
       return current + (target - current) * t;
     }
 
-    // Depth layers create the deep-space parallax: far stars are tiny, dim,
-    // near-static pinpricks; near stars are bigger, brighter, and sway more
-    // with the cursor, like they're genuinely closer to the "camera".
     type DepthLayer = { parallax: number; speedMul: number; sizeMul: number; alphaMul: number; shareOfStars: number };
     const DEPTH_LAYERS: DepthLayer[] = [
       { parallax: 0.08, speedMul: 0.35, sizeMul: 0.6, alphaMul: 0.55, shareOfStars: 0.5 },
@@ -200,7 +183,7 @@ const ParticleBackground = () => {
       tint: string;
       layer: DepthLayer;
       bright: boolean;
-      hero: boolean; // the rare few stars that get full diffraction spikes
+      hero: boolean;
       exotic: boolean;
       maxAlpha: number;
       minAlpha: number;
@@ -225,8 +208,6 @@ const ParticleBackground = () => {
         this.x = Math.random() * W;
         this.y = Math.random() * H;
 
-        // Weightless drift — slow, floaty, never rushed. Nearer layers move
-        // a little faster to reinforce the parallax illusion.
         const speedBase = 0.045 * layer.speedMul;
         this.vx = (Math.random() - 0.5) * speedBase;
         this.vy = (Math.random() - 0.5) * speedBase;
@@ -329,9 +310,6 @@ const ParticleBackground = () => {
           const distSq = dx * dx + dy * dy;
           if (distSq < hoverRadius * hoverRadius) {
             const dist = Math.sqrt(distSq) || 1;
-            // Smoothstep falloff so the pull eases in/out instead of
-            // snapping on at the radius edge — reads as a gentle drift
-            // toward the cursor rather than a magnet.
             const rawT = 1 - dist / hoverRadius;
             const force = (rawT * rawT * (3 - 2 * rawT)) * mouseActive;
             this.x += dx * force * 0.0007 * dt;
@@ -428,8 +406,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Rich, saturated deep-space nebula clouds — Hubble-style violets,
-    // magentas and teals rather than a faint realistic haze.
     class Nebula {
       x: number;
       y: number;
@@ -465,9 +441,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Faint distant spiral galaxies — a couple of soft tilted smudges with a
-    // brighter core, purely atmospheric, always subtle so they read as
-    // background depth rather than a logo.
     class Galaxy {
       x: number;
       y: number;
@@ -505,10 +478,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Energy blast — click-triggered shockwave rendered as soft, blurred
-    // color smudges (no hard outlines, no flying debris) in the scene's own
-    // violet / cyan / magenta / aqua palette. The expanding wavefront also
-    // physically shoves any nearby stars outward as it passes through them.
     class Blast {
       x: number;
       y: number;
@@ -526,12 +495,12 @@ const ParticleBackground = () => {
         this.shockRadius = 2;
         this.shockSpeed = 5.5 + Math.random() * 1.5;
         this.colors = [
-          'rgba(190,170,255,ALPHA)', // violet
-          'rgba(110,225,255,ALPHA)', // cyan
-          'rgba(255,140,220,ALPHA)', // magenta
-          'rgba(130,255,225,ALPHA)', // aqua
-          'rgba(150,140,255,ALPHA)', // indigo
-          'rgba(255,200,140,ALPHA)', // warm amber accent
+          'rgba(190,170,255,ALPHA)', 
+          'rgba(110,225,255,ALPHA)', 
+          'rgba(255,140,220,ALPHA)', 
+          'rgba(130,255,225,ALPHA)', 
+          'rgba(150,140,255,ALPHA)', 
+          'rgba(255,200,140,ALPHA)', 
         ];
       }
 
@@ -545,10 +514,6 @@ const ParticleBackground = () => {
         return this.age >= this.maxLife;
       }
 
-      // Pushes any star whose distance from the blast center is currently
-      // near the expanding shockwave radius outward, with a smoothstep
-      // falloff across the band. Kept deliberately gentle — a subtle shiver
-      // and slow settle, never enough to fling a star off its patch of sky.
       applyForce(dt: number) {
         const band = 65;
         const strength = Math.min(1.1, this.shockSpeed * 0.4);
@@ -578,12 +543,12 @@ const ParticleBackground = () => {
         ctx!.filter = 'blur(24px)';
 
         const layers = [
-          { rMul: 1.2, color: this.colors[4], a: 0.22 }, // indigo, outermost halo
-          { rMul: 1.05, color: this.colors[1], a: 0.24 }, // cyan
-          { rMul: 0.85, color: this.colors[0], a: 0.27 }, // violet
-          { rMul: 0.66, color: this.colors[2], a: 0.29 }, // magenta
-          { rMul: 0.46, color: this.colors[5], a: 0.26 }, // amber accent
-          { rMul: 0.26, color: this.colors[3], a: 0.4 }, // aqua core
+          { rMul: 1.2, color: this.colors[4], a: 0.22 }, 
+          { rMul: 1.05, color: this.colors[1], a: 0.24 },
+          { rMul: 0.85, color: this.colors[0], a: 0.27 }, 
+          { rMul: 0.66, color: this.colors[2], a: 0.29 }, 
+          { rMul: 0.46, color: this.colors[5], a: 0.26 }, 
+          { rMul: 0.26, color: this.colors[3], a: 0.4 }, 
         ];
         for (const layer of layers) {
           const r = Math.max(4, this.shockRadius * layer.rMul);
@@ -599,7 +564,6 @@ const ParticleBackground = () => {
         }
         ctx!.restore();
 
-        // Brief unblurred white-hot core right at click time, quickly gone.
         if (t < 0.16) {
           const coreFade = 1 - t / 0.16;
           const coreGrad = ctx!.createRadialGradient(this.x, this.y, 0, this.x, this.y, 24);
@@ -629,12 +593,12 @@ const ParticleBackground = () => {
 
     function buildNebulae() {
       const colors = [
-        'rgba(124,58,237,0.28)', // vivid violet
-        'rgba(56,189,248,0.22)', // electric cyan
-        'rgba(219,39,119,0.16)', // magenta
-        'rgba(8,47,73,0.28)', // deep teal-black
-        'rgba(45,212,191,0.14)', // aqua accent
-        'rgba(99,102,241,0.2)', // indigo
+        'rgba(124,58,237,0.28)',
+        'rgba(56,189,248,0.22)',
+        'rgba(219,39,119,0.16)',
+        'rgba(8,47,73,0.28)',
+        'rgba(45,212,191,0.14)',
+        'rgba(99,102,241,0.2)',
       ];
       const count = 5;
       nebulae = Array.from({ length: count }, () => new Nebula(colors));
@@ -810,7 +774,6 @@ const ParticleBackground = () => {
       parallax.x = approach(parallax.x, parallaxTarget.x, 0.02, dt);
       parallax.y = approach(parallax.y, parallaxTarget.y, 0.02, dt);
 
-      // Deep space base — near-black with a faint blue-violet undertone.
       ctx!.globalCompositeOperation = 'source-over';
       ctx!.fillStyle = '#01020a';
       ctx!.fillRect(0, 0, W, H);
@@ -828,8 +791,6 @@ const ParticleBackground = () => {
       ctx!.globalCompositeOperation = 'lighter';
       drawCursorCluster();
 
-      // Advance blast shockwaves and let them push nearby stars before the
-      // stars integrate their own motion this frame.
       for (const b of blasts) {
         b.update(dt);
         b.applyForce(dt);
@@ -872,8 +833,6 @@ const ParticleBackground = () => {
     };
     const handleClick = (e: MouseEvent) => {
       blasts.push(new Blast(e.pageX, e.pageY));
-      // Cap concurrent blasts so rapid clicking can't snowball into a
-      // performance problem — oldest ones just get dropped.
       if (blasts.length > 6) blasts.splice(0, blasts.length - 6);
     };
 
