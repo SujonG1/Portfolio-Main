@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Certifications from "./achievePrev Components/Certifications";
 
 const getPillTiming = (index: number, skill: string) => {
   const seed = (index * 37 + skill.length * 13) % 100;
@@ -31,7 +32,7 @@ const AchievePrev = () => {
   ]);
 
   return (
-    <div className="w-full h-dvh bg-transparent z-500 relative flex flex-col gap-5">
+    <div className="w-full h-dvh relative bg-transparent z-50 grid grid-cols-2 overflow-hidden">
       <style>{`
         @keyframes ambientShine {
           0%, 65%, 100% {
@@ -63,6 +64,12 @@ const AchievePrev = () => {
           animation-timing-function: ease-in-out;
         }
 
+        /* Pause keyframe animations on hover so scale and shadow effects render cleanly */
+        .ambient-pill:hover,
+        .ambient-pill:hover .light-beam {
+          animation-play-state: paused;
+        }
+
         .ambient-pill .light-beam {
           animation-name: glossSweep;
           animation-iteration-count: infinite;
@@ -70,8 +77,8 @@ const AchievePrev = () => {
         }
       `}</style>
 
-      <div className="w-1/2 h-full absolute py-30 px-15">
-        <div className="mb-8">
+      <div className="w-full h-full py-28 pl-12">
+        <div className="mb-10">
           <h1 className="font-grotesk text-7xl text-slate-200 font-bold">
             Skills
           </h1>
@@ -88,14 +95,14 @@ const AchievePrev = () => {
                   animationDuration: timing.duration,
                   animationDelay: timing.delay,
                 }}
-                className="ambient-pill relative overflow-hidden px-4 py-1.5 border border-white/10 rounded-full bg-gradient-to-tr from-sky-400/30 to-purple-800/30 backdrop-blur-md text-slate-300 font-poppins text-base cursor-pointer transition-all duration-200 ease-in-out hover:!scale-[1.15] hover:!shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:!border-sky-400/80 hover:!text-white hover:![text-shadow:0_0_12px_rgba(255,255,255,0.9)]"
+                className="ambient-pill relative overflow-hidden px-4 py-1.5 border border-white/10 rounded-full bg-linear-to-tr from-sky-400/30 to-purple-800/30 backdrop-blur-md text-slate-300 font-poppins text-base cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.15] hover:shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:border-sky-400/80 hover:text-white hover:[text-shadow:0_0_12px_rgba(255,255,255,0.9)]"
               >
                 <div 
                   style={{
                     animationDuration: timing.duration,
                     animationDelay: timing.delay,
                   }}
-                  className="light-beam absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 pointer-events-none"
+                  className="light-beam absolute top-0 w-1/2 h-full bg-linear-to-tr from-transparent via-white/25 to-transparent -skew-x-12 pointer-events-none"
                 />
 
                 <span className="relative z-10">{skill}</span>
@@ -104,7 +111,10 @@ const AchievePrev = () => {
           })}
         </div>
       </div>
-      <div className="w-1/2 h-full"></div>
+
+      <div className="w-full h-full">
+        <Certifications />
+      </div>
     </div>
   );
 };
