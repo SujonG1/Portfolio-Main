@@ -134,17 +134,18 @@ const ParticleBackground = () => {
       exotic?: boolean;
     };
 
+    // Muted, solemn spectral tints — desaturated and dimmer for a graver mood
     const SPECTRAL_CLASSES: SpectralClass[] = [
-      { name: 'M', weight: 62, tint: 'rgba(255,190,150,0.55)', sizeMul: 0.75, alphaMul: 0.7 },
-      { name: 'K', weight: 14, tint: 'rgba(255,206,168,0.55)', sizeMul: 0.85, alphaMul: 0.8 },
-      { name: 'G', weight: 9, tint: 'rgba(255,236,214,0.55)', sizeMul: 1, alphaMul: 0.95 },
-      { name: 'F', weight: 5, tint: 'rgba(240,244,255,0.55)', sizeMul: 1.1, alphaMul: 1 },
-      { name: 'A', weight: 2.5, tint: 'rgba(214,225,255,0.6)', sizeMul: 1.3, alphaMul: 1.08 },
-      { name: 'B', weight: 1.2, tint: 'rgba(178,196,255,0.65)', sizeMul: 1.6, alphaMul: 1.2 },
-      { name: 'O', weight: 0.4, tint: 'rgba(150,175,255,0.7)', sizeMul: 2, alphaMul: 1.3 },
-      { name: 'cyan-anomaly', weight: 1.6, tint: 'rgba(120,240,231,0.7)', sizeMul: 1.5, alphaMul: 1.2, exotic: true },
-      { name: 'violet-anomaly', weight: 1.6, tint: 'rgba(200,150,255,0.7)', sizeMul: 1.5, alphaMul: 1.2, exotic: true },
-      { name: 'rose-anomaly', weight: 0.9, tint: 'rgba(255,140,190,0.7)', sizeMul: 1.6, alphaMul: 1.25, exotic: true },
+      { name: 'M', weight: 62, tint: 'rgba(210,170,150,0.5)', sizeMul: 0.75, alphaMul: 0.6 },
+      { name: 'K', weight: 14, tint: 'rgba(215,190,175,0.5)', sizeMul: 0.85, alphaMul: 0.66 },
+      { name: 'G', weight: 9, tint: 'rgba(220,222,215,0.5)', sizeMul: 1, alphaMul: 0.78 },
+      { name: 'F', weight: 5, tint: 'rgba(210,220,232,0.5)', sizeMul: 1.1, alphaMul: 0.82 },
+      { name: 'A', weight: 2.5, tint: 'rgba(190,204,230,0.55)', sizeMul: 1.3, alphaMul: 0.88 },
+      { name: 'B', weight: 1.2, tint: 'rgba(160,180,220,0.58)', sizeMul: 1.6, alphaMul: 0.95 },
+      { name: 'O', weight: 0.4, tint: 'rgba(140,165,215,0.62)', sizeMul: 2, alphaMul: 1.05 },
+      { name: 'cyan-anomaly', weight: 1.6, tint: 'rgba(100,190,190,0.55)', sizeMul: 1.5, alphaMul: 0.95, exotic: true },
+      { name: 'violet-anomaly', weight: 1.6, tint: 'rgba(160,130,200,0.55)', sizeMul: 1.5, alphaMul: 0.95, exotic: true },
+      { name: 'rose-anomaly', weight: 0.9, tint: 'rgba(190,120,150,0.55)', sizeMul: 1.6, alphaMul: 1, exotic: true },
     ];
     const SPECTRAL_TOTAL_WEIGHT = SPECTRAL_CLASSES.reduce((sum, c) => sum + c.weight, 0);
 
@@ -164,9 +165,9 @@ const ParticleBackground = () => {
 
     type DepthLayer = { parallax: number; speedMul: number; sizeMul: number; alphaMul: number; shareOfStars: number };
     const DEPTH_LAYERS: DepthLayer[] = [
-      { parallax: 0.08, speedMul: 0.35, sizeMul: 0.6, alphaMul: 0.55, shareOfStars: 0.5 },
-      { parallax: 0.22, speedMul: 0.7, sizeMul: 0.95, alphaMul: 0.85, shareOfStars: 0.34 },
-      { parallax: 0.5, speedMul: 1.15, sizeMul: 1.45, alphaMul: 1.1, shareOfStars: 0.16 },
+      { parallax: 0.08, speedMul: 0.35, sizeMul: 0.6, alphaMul: 0.42, shareOfStars: 0.5 },
+      { parallax: 0.22, speedMul: 0.7, sizeMul: 0.95, alphaMul: 0.65, shareOfStars: 0.34 },
+      { parallax: 0.5, speedMul: 1.15, sizeMul: 1.45, alphaMul: 0.88, shareOfStars: 0.16 },
     ];
 
     class Star {
@@ -229,8 +230,8 @@ const ParticleBackground = () => {
         this.coreR = baseCoreR * cls.sizeMul * layer.sizeMul;
         this.glowR = (this.bright ? this.coreR * 10 : this.coreR * 5.4);
 
-        this.maxAlpha = Math.min(1, (this.bright ? Math.random() * 0.18 + 0.8 : Math.random() * 0.4 + 0.28) * cls.alphaMul * layer.alphaMul);
-        this.minAlpha = this.bright ? 0.45 : Math.random() * 0.07 + 0.03;
+        this.maxAlpha = Math.min(1, (this.bright ? Math.random() * 0.2 + 0.62 : Math.random() * 0.32 + 0.2) * cls.alphaMul * layer.alphaMul);
+        this.minAlpha = this.bright ? 0.32 : Math.random() * 0.05 + 0.02;
         this.alpha = Math.random() * (this.maxAlpha - this.minAlpha) + this.minAlpha;
 
         this.twinklePhase = Math.random() * Math.PI * 2;
@@ -421,7 +422,7 @@ const ParticleBackground = () => {
         this.baseY = Math.random() * H;
         this.x = this.baseX;
         this.y = this.baseY;
-        this.radius = Math.min(W, H) * (0.4 + Math.random() * 0.42);
+        this.radius = Math.min(W, H) * (0.42 + Math.random() * 0.46);
         this.color = colors[Math.floor(Math.random() * colors.length)];
         this.driftSpeed = 0.00005 + Math.random() * 0.00007;
         this.phase = Math.random() * Math.PI * 2;
@@ -441,6 +442,208 @@ const ParticleBackground = () => {
       }
     }
 
+    // Small, sparse dark "void" pockets so the scene keeps areas of real depth/contrast
+    class VoidPocket {
+      x: number;
+      y: number;
+      baseX: number;
+      baseY: number;
+      radius: number;
+      driftSpeed: number;
+      phase: number;
+
+      constructor() {
+        this.baseX = Math.random() * W;
+        this.baseY = Math.random() * H;
+        this.x = this.baseX;
+        this.y = this.baseY;
+        this.radius = Math.min(W, H) * (0.28 + Math.random() * 0.26);
+        this.driftSpeed = 0.00004 + Math.random() * 0.00005;
+        this.phase = Math.random() * Math.PI * 2;
+      }
+
+      update(time: number) {
+        this.x = this.baseX + Math.sin(time * this.driftSpeed + this.phase) * W * 0.06;
+        this.y = this.baseY + Math.cos(time * this.driftSpeed * 0.7 + this.phase) * H * 0.06;
+      }
+
+      draw() {
+        const gradient = ctx!.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        gradient.addColorStop(0, 'rgba(1,2,10,0.7)');
+        gradient.addColorStop(1, 'rgba(1,2,10,0)');
+        ctx!.fillStyle = gradient;
+        ctx!.fillRect(0, 0, W, H);
+      }
+    }
+
+    // A distant planet — soft, mostly-shadowed sphere with a faint terminator
+    // line and occasionally a thin ring. Kept low-opacity so it reads as a
+    // quiet background detail rather than a focal point.
+    class Planet {
+      x: number;
+      y: number;
+      radius: number;
+      bodyTint: string;
+      shadowTint: string;
+      hasRing: boolean;
+      ringTint: string;
+      lightAngle: number;
+      alpha: number;
+
+      constructor() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.radius = Math.min(W, H) * (0.02 + Math.random() * 0.035);
+        const palettes = [
+          { body: 'rgba(120,110,140,1)', shadow: 'rgba(10,10,20,1)' },
+          { body: 'rgba(150,130,120,1)', shadow: 'rgba(15,10,15,1)' },
+          { body: 'rgba(100,120,140,1)', shadow: 'rgba(8,12,20,1)' },
+          { body: 'rgba(140,135,150,1)', shadow: 'rgba(12,10,18,1)' },
+        ];
+        const p = palettes[Math.floor(Math.random() * palettes.length)];
+        this.bodyTint = p.body;
+        this.shadowTint = p.shadow;
+        this.hasRing = Math.random() < 0.4;
+        this.ringTint = 'rgba(200,195,210,ALPHA)';
+        this.lightAngle = Math.random() * Math.PI * 2;
+        this.alpha = 0.16 + Math.random() * 0.14;
+      }
+
+      draw() {
+        ctx!.save();
+        ctx!.globalAlpha = this.alpha;
+
+        if (this.hasRing) {
+          ctx!.save();
+          ctx!.translate(this.x, this.y);
+          ctx!.rotate(this.lightAngle * 0.3);
+          ctx!.scale(1, 0.28);
+          ctx!.strokeStyle = this.ringTint.replace('ALPHA', '0.5');
+          ctx!.lineWidth = this.radius * 0.14;
+          ctx!.beginPath();
+          ctx!.arc(0, 0, this.radius * 1.9, 0, Math.PI * 2);
+          ctx!.stroke();
+          ctx!.restore();
+        }
+
+        const lx = Math.cos(this.lightAngle);
+        const ly = Math.sin(this.lightAngle);
+        const grad = ctx!.createRadialGradient(
+          this.x + lx * this.radius * 0.4,
+          this.y + ly * this.radius * 0.4,
+          this.radius * 0.05,
+          this.x,
+          this.y,
+          this.radius * 1.15
+        );
+        grad.addColorStop(0, this.bodyTint);
+        grad.addColorStop(0.55, this.bodyTint);
+        grad.addColorStop(0.85, this.shadowTint);
+        grad.addColorStop(1, this.shadowTint);
+        ctx!.fillStyle = grad;
+        ctx!.beginPath();
+        ctx!.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.restore();
+      }
+    }
+
+    // A rare, slow-drifting comet with a long faint tail — subtle and
+    // infrequent so it feels like a quiet event rather than a shooting star.
+    class Comet {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      length: number;
+      tint: string;
+      age: number;
+      maxLife: number;
+
+      constructor() {
+        const fromLeft = Math.random() < 0.5;
+        this.x = fromLeft ? -80 : W + 80;
+        this.y = Math.random() * H * 0.7;
+        const speed = 0.12 + Math.random() * 0.08;
+        const angle = (Math.PI / 14) * (Math.random() - 0.5) + (fromLeft ? 0 : Math.PI);
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed + speed * 0.3;
+        this.length = 140 + Math.random() * 100;
+        this.tint = Math.random() < 0.5 ? 'rgba(210,220,255,ALPHA)' : 'rgba(220,205,230,ALPHA)';
+        this.age = 0;
+        this.maxLife = (W + 160) / Math.max(0.05, Math.abs(this.vx));
+      }
+
+      update(dt: number) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.age += dt;
+      }
+
+      get done() {
+        return this.age >= this.maxLife || this.x < -200 || this.x > W + 200 || this.y > H + 200;
+      }
+
+      draw() {
+        const fadeIn = Math.min(1, this.age / 60);
+        const fadeOut = Math.min(1, (this.maxLife - this.age) / 60);
+        const alpha = Math.min(fadeIn, fadeOut) * 0.32;
+        if (alpha <= 0.01) return;
+
+        const mag = Math.hypot(this.vx, this.vy) || 1;
+        const dirX = this.vx / mag;
+        const dirY = this.vy / mag;
+        const tailX = this.x - dirX * this.length;
+        const tailY = this.y - dirY * this.length;
+
+        const grad = ctx!.createLinearGradient(this.x, this.y, tailX, tailY);
+        grad.addColorStop(0, this.tint.replace('ALPHA', `${alpha}`));
+        grad.addColorStop(1, this.tint.replace('ALPHA', '0'));
+        ctx!.strokeStyle = grad;
+        ctx!.lineWidth = 1.1;
+        ctx!.lineCap = 'round';
+        ctx!.beginPath();
+        ctx!.moveTo(this.x, this.y);
+        ctx!.lineTo(tailX, tailY);
+        ctx!.stroke();
+
+        const headGrad = ctx!.createRadialGradient(this.x, this.y, 0, this.x, this.y, 3.2);
+        headGrad.addColorStop(0, `rgba(255,255,255,${alpha * 1.6})`);
+        headGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx!.fillStyle = headGrad;
+        ctx!.beginPath();
+        ctx!.arc(this.x, this.y, 3.2, 0, Math.PI * 2);
+        ctx!.fill();
+      }
+    }
+
+    // Fine cosmic dust / distant asteroid specks — tiny, dim, static points
+    // that add texture without drawing attention.
+    class DustField {
+      points: { x: number; y: number; r: number; a: number }[];
+
+      constructor(count: number) {
+        this.points = Array.from({ length: count }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: 0.4 + Math.random() * 0.7,
+          a: 0.04 + Math.random() * 0.08,
+        }));
+      }
+
+      draw() {
+        for (const p of this.points) {
+          ctx!.globalAlpha = p.a;
+          ctx!.fillStyle = 'rgba(200,195,210,1)';
+          ctx!.beginPath();
+          ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+        ctx!.globalAlpha = 1;
+      }
+    }
+
     class Galaxy {
       x: number;
       y: number;
@@ -455,8 +658,8 @@ const ParticleBackground = () => {
         this.y = Math.random() * H;
         this.radius = Math.min(W, H) * (0.09 + Math.random() * 0.08);
         this.rotation = Math.random() * Math.PI;
-        this.tint = Math.random() < 0.5 ? 'rgba(180,160,255,0.14)' : 'rgba(140,220,255,0.12)';
-        this.coreTint = 'rgba(255,250,240,0.35)';
+        this.tint = Math.random() < 0.5 ? 'rgba(120,100,170,0.14)' : 'rgba(90,140,170,0.13)';
+        this.coreTint = 'rgba(220,215,210,0.26)';
         this.spinSpeed = (Math.random() < 0.5 ? -1 : 1) * (0.000006 + Math.random() * 0.000006);
       }
 
@@ -588,21 +791,45 @@ const ParticleBackground = () => {
 
     function starCountFor(width: number, height: number) {
       const area = width * height;
-      return Math.min(340, Math.max(90, Math.floor(area / 10500)));
+      return Math.min(560, Math.max(150, Math.floor(area / 6800)));
     }
 
+    // Muted, elegiac nebula palette — deep blues and muted violets rather than
+    // vivid color, so the scene feels solemn and quiet rather than lively
     function buildNebulae() {
       const colors = [
-        'rgba(124,58,237,0.28)',
-        'rgba(56,189,248,0.22)',
-        'rgba(219,39,119,0.16)',
-        'rgba(8,47,73,0.28)',
-        'rgba(45,212,191,0.14)',
-        'rgba(99,102,241,0.2)',
+        'rgba(70,50,120,0.26)',
+        'rgba(30,70,120,0.24)',
+        'rgba(90,40,90,0.18)',
+        'rgba(20,40,80,0.28)',
+        'rgba(45,90,95,0.16)',
+        'rgba(60,55,110,0.22)',
+        'rgba(15,20,45,0.3)',
       ];
-      const count = 5;
+      const count = 9;
       nebulae = Array.from({ length: count }, () => new Nebula(colors));
     }
+
+    let voidPockets: VoidPocket[] = [];
+    function buildVoidPockets() {
+      const count = 5;
+      voidPockets = Array.from({ length: count }, () => new VoidPocket());
+    }
+
+    let planets: Planet[] = [];
+    function buildPlanets() {
+      const count = 2 + Math.floor(Math.random() * 2); // 2-3, kept sparse
+      planets = Array.from({ length: count }, () => new Planet());
+    }
+
+    let dustField: DustField | null = null;
+    function buildDustField() {
+      const count = Math.min(220, Math.max(60, Math.floor((W * H) / 9000)));
+      dustField = new DustField(count);
+    }
+
+    let comets: Comet[] = [];
+    let nextCometAt = performance.now() + 14000 + Math.random() * 12000;
 
     function buildGalaxies() {
       const count = 2;
@@ -622,7 +849,11 @@ const ParticleBackground = () => {
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       buildNebulae();
+      buildVoidPockets();
       buildGalaxies();
+      buildPlanets();
+      buildDustField();
+      comets = [];
 
       const total = starCountFor(W, H);
       stars = [];
@@ -747,10 +978,24 @@ const ParticleBackground = () => {
       }
     }
 
+    function maybeSpawnComet(now: number) {
+      if (now >= nextCometAt) {
+        nextCometAt = now + 14000 + Math.random() * 12000;
+        if (comets.length < 1) comets.push(new Comet());
+      }
+    }
+
+    // Full vignette: a small luminous clearing near the center, deepening
+    // steadily toward the edges — grave and heavy, but not flat or lifeless.
     function drawVignette() {
-      const grad = ctx!.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.75);
+      const cx = W / 2;
+      const cy = H / 2;
+      const maxDist = Math.hypot(cx, cy);
+      const grad = ctx!.createRadialGradient(cx, cy, maxDist * 0.12, cx, cy, maxDist * 1.0);
       grad.addColorStop(0, 'rgba(0,0,0,0)');
-      grad.addColorStop(1, 'rgba(0,2,10,0.55)');
+      grad.addColorStop(0.35, 'rgba(2,3,12,0.22)');
+      grad.addColorStop(0.7, 'rgba(2,3,12,0.48)');
+      grad.addColorStop(1, 'rgba(1,2,9,0.75)');
       ctx!.fillStyle = grad;
       ctx!.fillRect(0, 0, W, H);
     }
@@ -774,8 +1019,14 @@ const ParticleBackground = () => {
       parallax.x = approach(parallax.x, parallaxTarget.x, 0.02, dt);
       parallax.y = approach(parallax.y, parallaxTarget.y, 0.02, dt);
 
+      // Deep, near-black base with only a whisper of color — grave rather than
+      // bright, but still faintly blue/violet rather than flat black.
       ctx!.globalCompositeOperation = 'source-over';
-      ctx!.fillStyle = '#01020a';
+      const baseGrad = ctx!.createLinearGradient(0, 0, W, H);
+      baseGrad.addColorStop(0, '#040414');
+      baseGrad.addColorStop(0.5, '#08071c');
+      baseGrad.addColorStop(1, '#020310');
+      ctx!.fillStyle = baseGrad;
       ctx!.fillRect(0, 0, W, H);
 
       ctx!.globalCompositeOperation = 'lighter';
@@ -786,6 +1037,23 @@ const ParticleBackground = () => {
       for (const g of galaxies) g.draw(now);
 
       ctx!.globalCompositeOperation = 'source-over';
+      if (dustField) dustField.draw();
+      for (const p of planets) p.draw();
+
+      // Dark pockets drawn with normal blending so they genuinely darken
+      // patches of sky rather than adding more light.
+      for (const v of voidPockets) {
+        v.update(now);
+        v.draw();
+      }
+
+      maybeSpawnComet(now);
+      for (const c of comets) c.update(dt);
+      ctx!.globalCompositeOperation = 'lighter';
+      for (const c of comets) c.draw();
+      comets = comets.filter((c) => !c.done);
+      ctx!.globalCompositeOperation = 'source-over';
+
       drawConstellationLines(parallax.x * DEPTH_LAYERS[2].parallax, parallax.y * DEPTH_LAYERS[2].parallax);
 
       ctx!.globalCompositeOperation = 'lighter';

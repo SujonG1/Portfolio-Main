@@ -76,8 +76,6 @@ const AchievePrev = () => {
           animation-timing-function: ease-in-out;
         }
       `}</style>
-
-      {/* Skills Section */}
       <div className="w-full h-full py-28 pl-12">
         <div className="mb-10">
           <h1 className="font-grotesk text-7xl text-slate-200 font-bold">
