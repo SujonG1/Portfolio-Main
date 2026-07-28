@@ -442,7 +442,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Small, sparse dark "void" pockets so the scene keeps areas of real depth/contrast
     class VoidPocket {
       x: number;
       y: number;
@@ -476,9 +475,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // A distant planet — soft, mostly-shadowed sphere with a faint terminator
-    // line and occasionally a thin ring. Kept low-opacity so it reads as a
-    // quiet background detail rather than a focal point.
     class Planet {
       x: number;
       y: number;
@@ -549,8 +545,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // A rare, slow-drifting comet with a long faint tail — subtle and
-    // infrequent so it feels like a quiet event rather than a shooting star.
     class Comet {
       x: number;
       y: number;
@@ -618,8 +612,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Fine cosmic dust / distant asteroid specks — tiny, dim, static points
-    // that add texture without drawing attention.
     class DustField {
       points: { x: number; y: number; r: number; a: number }[];
 
@@ -794,8 +786,6 @@ const ParticleBackground = () => {
       return Math.min(560, Math.max(150, Math.floor(area / 6800)));
     }
 
-    // Muted, elegiac nebula palette — deep blues and muted violets rather than
-    // vivid color, so the scene feels solemn and quiet rather than lively
     function buildNebulae() {
       const colors = [
         'rgba(70,50,120,0.26)',
@@ -985,8 +975,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Full vignette: a small luminous clearing near the center, deepening
-    // steadily toward the edges — grave and heavy, but not flat or lifeless.
     function drawVignette() {
       const cx = W / 2;
       const cy = H / 2;
@@ -1019,8 +1007,6 @@ const ParticleBackground = () => {
       parallax.x = approach(parallax.x, parallaxTarget.x, 0.02, dt);
       parallax.y = approach(parallax.y, parallaxTarget.y, 0.02, dt);
 
-      // Deep, near-black base with only a whisper of color — grave rather than
-      // bright, but still faintly blue/violet rather than flat black.
       ctx!.globalCompositeOperation = 'source-over';
       const baseGrad = ctx!.createLinearGradient(0, 0, W, H);
       baseGrad.addColorStop(0, '#040414');
@@ -1040,8 +1026,6 @@ const ParticleBackground = () => {
       if (dustField) dustField.draw();
       for (const p of planets) p.draw();
 
-      // Dark pockets drawn with normal blending so they genuinely darken
-      // patches of sky rather than adding more light.
       for (const v of voidPockets) {
         v.update(now);
         v.draw();
