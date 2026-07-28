@@ -13,12 +13,14 @@ const NavMain = () => {
   return (
     <div className="flex justify-between bg-slate-950/10 backdrop-blur-md w-full h-17 p-4"
     ref={container}>
-      <div className="flex justify-between text-4xl font-bold items-center bg-gradient-to-r from-sky-600 to-purple-800 bg-clip-text text-transparent opacity-100 nav-logo" >
+      <div className="flex justify-between text-4xl font-bold items-center bg-linear-to-r from-sky-600 to-purple-800 bg-clip-text text-transparent opacity-100 nav-logo" >
         <img
           src={myImage}
           className="w-10 h-10 object-cover rounded-full cursor-pointer"
         />
-        <Link to="/" className="ml-5 pb-1 cursor-pointer font-anta">
+        <Link to="/" className="ml-5 pb-1 cursor-pointer font-anta"
+        >
+        
           sujon.dev
         </Link>
       </div>

@@ -77,6 +77,7 @@ const AchievePrev = () => {
         }
       `}</style>
 
+      {/* Skills Section */}
       <div className="w-full h-full py-28 pl-12">
         <div className="mb-10">
           <h1 className="font-grotesk text-7xl text-slate-200 font-bold">
@@ -95,7 +96,7 @@ const AchievePrev = () => {
                   animationDuration: timing.duration,
                   animationDelay: timing.delay,
                 }}
-                className="ambient-pill relative overflow-hidden px-4 py-1.5 border border-white/10 rounded-full bg-linear-to-tr from-sky-400/30 to-purple-800/30 backdrop-blur-md text-slate-300 font-poppins text-base cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.15] hover:shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:border-sky-400/80 hover:text-white hover:[text-shadow:0_0_12px_rgba(255,255,255,0.9)]"
+                className="ambient-pill relative overflow-hidden px-4 py-1.5 border border-white/10 rounded-full bg-linear-to-tr from-sky-400/30 to-purple-800/30 backdrop-blur-md text-slate-400 font-poppins text-base cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.15] hover:shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:border-sky-400/80 hover:text-white hover:[text-shadow:0_0_12px_rgba(255,255,255,0.9)]"
               >
                 <div 
                   style={{
@@ -111,9 +112,16 @@ const AchievePrev = () => {
           })}
         </div>
       </div>
-
-      <div className="w-full h-full">
+      <div className="w-full h-full py-30 pr-12">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-2/5 h-px bg-slate-400"></div>    
+          <h1 className="text-slate-400 text-4xl font-tangerine whitespace-nowrap w-1/5">
+            Certifications
+          </h1>
+          <div className="w-2/5 h-px bg-slate-400"></div>
+        </div>
         <Certifications />
+        <div className="w-full h-px bg-slate-400 mt-1"></div>
       </div>
     </div>
   );
