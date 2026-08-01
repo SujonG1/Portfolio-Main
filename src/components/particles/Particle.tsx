@@ -33,6 +33,10 @@ const ParticleBackground = () => {
     const maxLineDistance = 100;
     const maxLineDistanceSq = maxLineDistance * maxLineDistance;
 
+    // Cached full-canvas gradients (rebuilt only on init/resize, not every frame)
+    let baseGradient: CanvasGradient | null = null;
+    let vignetteGradient: CanvasGradient | null = null;
+
     type Sprite = { canvas: HTMLCanvasElement; size: number };
     const spriteCache = new Map<string, Sprite>();
 
@@ -125,6 +129,33 @@ const ParticleBackground = () => {
       return sprite;
     }
 
+    // Generic cached radial-gradient sprite for large soft blobs (nebulae, void pockets).
+    // Precomputing these avoids filling the entire canvas with a freshly-built
+    // CanvasGradient every single frame (previously done for every nebula/void pocket).
+    const blobSpriteCache = new Map<string, Sprite>();
+    function makeBlobSprite(radius: number, stops: [number, string][]): Sprite {
+      const key = stops.map(([o, c]) => `${o}:${c}`).join('|') + `@${radius}`;
+      const cached = blobSpriteCache.get(key);
+      if (cached) return cached;
+
+      const size = Math.max(2, Math.ceil(radius * 2));
+      const off = document.createElement('canvas');
+      off.width = size;
+      off.height = size;
+      const octx = off.getContext('2d')!;
+      const cx = size / 2;
+      const cy = size / 2;
+
+      const gradient = octx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      for (const [offset, color] of stops) gradient.addColorStop(offset, color);
+      octx.fillStyle = gradient;
+      octx.fillRect(0, 0, size, size);
+
+      const sprite = { canvas: off, size };
+      blobSpriteCache.set(key, sprite);
+      return sprite;
+    }
+
     type SpectralClass = {
       name: string;
       weight: number;
@@ -204,6 +235,11 @@ const ParticleBackground = () => {
       shootLength: number;
       shootTint: string;
 
+      // Resolved once at construction so draw() never has to build a cache
+      // key string or hit a Map lookup on every animation frame.
+      sprite: Sprite;
+      spikeSprite: Sprite | null;
+
       constructor(layer: DepthLayer) {
         this.layer = layer;
         this.x = Math.random() * W;
@@ -247,6 +283,9 @@ const ParticleBackground = () => {
         this.shootLife = 0;
         this.shootMaxLife = 0;
         this.shootLength = 0;
+
+        this.sprite = makeGlowSprite(this.coreR, this.glowR, this.tint);
+        this.spikeSprite = this.hero ? makeSpikeSprite(this.glowR * 3.4, this.tint) : null;
       }
 
       startShooting() {
@@ -376,15 +415,15 @@ const ParticleBackground = () => {
 
         const drawAlpha = Math.min(1, Math.max(0, this.alpha) + boost * 0.25);
         const scale = 1 + boost * 0.35;
-        const sprite = makeGlowSprite(this.coreR, this.glowR, this.tint);
+        const sprite = this.sprite;
         const drawSize = sprite.size * scale;
 
         ctx!.globalAlpha = drawAlpha;
         ctx!.drawImage(sprite.canvas, dx - drawSize / 2, dy - drawSize / 2, drawSize, drawSize);
 
-        if (this.hero) {
+        if (this.hero && this.spikeSprite) {
           const pulse = (Math.sin(time * 0.0009 + this.sparklePhase) * 0.5 + 0.5) * 0.35 + 0.75;
-          const spikeSprite = makeSpikeSprite(this.glowR * 3.4, this.tint);
+          const spikeSprite = this.spikeSprite;
           const sSize = spikeSprite.size * pulse;
           ctx!.globalAlpha = drawAlpha * 0.85;
           ctx!.drawImage(spikeSprite.canvas, dx - sSize / 2, dy - sSize / 2, sSize, sSize);
@@ -407,15 +446,19 @@ const ParticleBackground = () => {
       }
     }
 
+    // Nebulae now render via a precomputed sprite (built once) instead of
+    // filling the entire canvas with a freshly constructed radial gradient
+    // every frame. Only position (drift) changes per frame, so we simply
+    // drawImage the cached sprite at the new location — same look, far less work.
     class Nebula {
       x: number;
       y: number;
       baseX: number;
       baseY: number;
       radius: number;
-      color: string;
       driftSpeed: number;
       phase: number;
+      sprite: Sprite;
 
       constructor(colors: string[]) {
         this.baseX = Math.random() * W;
@@ -423,9 +466,13 @@ const ParticleBackground = () => {
         this.x = this.baseX;
         this.y = this.baseY;
         this.radius = Math.min(W, H) * (0.42 + Math.random() * 0.46);
-        this.color = colors[Math.floor(Math.random() * colors.length)];
+        const color = colors[Math.floor(Math.random() * colors.length)];
         this.driftSpeed = 0.00005 + Math.random() * 0.00007;
         this.phase = Math.random() * Math.PI * 2;
+        this.sprite = makeBlobSprite(this.radius, [
+          [0, color],
+          [1, 'rgba(0,0,0,0)'],
+        ]);
       }
 
       update(time: number) {
@@ -434,14 +481,13 @@ const ParticleBackground = () => {
       }
 
       draw() {
-        const gradient = ctx!.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
-        gradient.addColorStop(0, this.color);
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx!.fillStyle = gradient;
-        ctx!.fillRect(0, 0, W, H);
+        const s = this.sprite.size;
+        ctx!.drawImage(this.sprite.canvas, this.x - s / 2, this.y - s / 2, s, s);
       }
     }
 
+    // Same sprite-caching approach as Nebula: precompute the dark radial
+    // gradient once and blit it instead of filling the full canvas per frame.
     class VoidPocket {
       x: number;
       y: number;
@@ -450,6 +496,7 @@ const ParticleBackground = () => {
       radius: number;
       driftSpeed: number;
       phase: number;
+      sprite: Sprite;
 
       constructor() {
         this.baseX = Math.random() * W;
@@ -459,6 +506,10 @@ const ParticleBackground = () => {
         this.radius = Math.min(W, H) * (0.28 + Math.random() * 0.26);
         this.driftSpeed = 0.00004 + Math.random() * 0.00005;
         this.phase = Math.random() * Math.PI * 2;
+        this.sprite = makeBlobSprite(this.radius, [
+          [0, 'rgba(1,2,10,0.7)'],
+          [1, 'rgba(1,2,10,0)'],
+        ]);
       }
 
       update(time: number) {
@@ -467,81 +518,8 @@ const ParticleBackground = () => {
       }
 
       draw() {
-        const gradient = ctx!.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
-        gradient.addColorStop(0, 'rgba(1,2,10,0.7)');
-        gradient.addColorStop(1, 'rgba(1,2,10,0)');
-        ctx!.fillStyle = gradient;
-        ctx!.fillRect(0, 0, W, H);
-      }
-    }
-
-    class Planet {
-      x: number;
-      y: number;
-      radius: number;
-      bodyTint: string;
-      shadowTint: string;
-      hasRing: boolean;
-      ringTint: string;
-      lightAngle: number;
-      alpha: number;
-
-      constructor() {
-        this.x = Math.random() * W;
-        this.y = Math.random() * H;
-        this.radius = Math.min(W, H) * (0.02 + Math.random() * 0.035);
-        const palettes = [
-          { body: 'rgba(120,110,140,1)', shadow: 'rgba(10,10,20,1)' },
-          { body: 'rgba(150,130,120,1)', shadow: 'rgba(15,10,15,1)' },
-          { body: 'rgba(100,120,140,1)', shadow: 'rgba(8,12,20,1)' },
-          { body: 'rgba(140,135,150,1)', shadow: 'rgba(12,10,18,1)' },
-        ];
-        const p = palettes[Math.floor(Math.random() * palettes.length)];
-        this.bodyTint = p.body;
-        this.shadowTint = p.shadow;
-        this.hasRing = Math.random() < 0.4;
-        this.ringTint = 'rgba(200,195,210,ALPHA)';
-        this.lightAngle = Math.random() * Math.PI * 2;
-        this.alpha = 0.16 + Math.random() * 0.14;
-      }
-
-      draw() {
-        ctx!.save();
-        ctx!.globalAlpha = this.alpha;
-
-        if (this.hasRing) {
-          ctx!.save();
-          ctx!.translate(this.x, this.y);
-          ctx!.rotate(this.lightAngle * 0.3);
-          ctx!.scale(1, 0.28);
-          ctx!.strokeStyle = this.ringTint.replace('ALPHA', '0.5');
-          ctx!.lineWidth = this.radius * 0.14;
-          ctx!.beginPath();
-          ctx!.arc(0, 0, this.radius * 1.9, 0, Math.PI * 2);
-          ctx!.stroke();
-          ctx!.restore();
-        }
-
-        const lx = Math.cos(this.lightAngle);
-        const ly = Math.sin(this.lightAngle);
-        const grad = ctx!.createRadialGradient(
-          this.x + lx * this.radius * 0.4,
-          this.y + ly * this.radius * 0.4,
-          this.radius * 0.05,
-          this.x,
-          this.y,
-          this.radius * 1.15
-        );
-        grad.addColorStop(0, this.bodyTint);
-        grad.addColorStop(0.55, this.bodyTint);
-        grad.addColorStop(0.85, this.shadowTint);
-        grad.addColorStop(1, this.shadowTint);
-        ctx!.fillStyle = grad;
-        ctx!.beginPath();
-        ctx!.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx!.fill();
-
-        ctx!.restore();
+        const s = this.sprite.size;
+        ctx!.drawImage(this.sprite.canvas, this.x - s / 2, this.y - s / 2, s, s);
       }
     }
 
@@ -681,6 +659,11 @@ const ParticleBackground = () => {
       shockRadius: number;
       shockSpeed: number;
       colors: string[];
+      // Quantized-radius cache: the blurred shockwave is only re-rendered
+      // (the expensive part — ctx.filter blur over 6 gradient fills) when the
+      // radius crosses into a new bucket, instead of on every single frame.
+      bakedBucket: number;
+      bakedSprite: Sprite | null;
 
       constructor(x: number, y: number) {
         this.x = x;
@@ -697,6 +680,8 @@ const ParticleBackground = () => {
           'rgba(150,140,255,ALPHA)', 
           'rgba(255,200,140,ALPHA)', 
         ];
+        this.bakedBucket = -1;
+        this.bakedSprite = null;
       }
 
       update(dt: number) {
@@ -729,14 +714,7 @@ const ParticleBackground = () => {
         }
       }
 
-      draw() {
-        const t = this.age / this.maxLife;
-        const fade = Math.max(0, 1 - t);
-        if (fade <= 0.01) return;
-
-        ctx!.save();
-        ctx!.filter = 'blur(24px)';
-
+      bakeShockSprite(radius: number): Sprite {
         const layers = [
           { rMul: 1.2, color: this.colors[4], a: 0.22 }, 
           { rMul: 1.05, color: this.colors[1], a: 0.24 },
@@ -745,18 +723,54 @@ const ParticleBackground = () => {
           { rMul: 0.46, color: this.colors[5], a: 0.26 }, 
           { rMul: 0.26, color: this.colors[3], a: 0.4 }, 
         ];
+        // fade is applied later via globalAlpha at draw time — valid because
+        // 'lighter' (additive) blending is linear, so scaling the finished
+        // composite by `fade` is identical to scaling every input layer by it.
+        const blurPad = 90;
+        const maxR = Math.max(4, radius * 1.2);
+        const size = Math.ceil((maxR + blurPad) * 2);
+        const off = document.createElement('canvas');
+        off.width = size;
+        off.height = size;
+        const octx = off.getContext('2d')!;
+        const cx = size / 2;
+        const cy = size / 2;
+
+        octx.globalCompositeOperation = 'lighter';
+        octx.filter = 'blur(24px)';
         for (const layer of layers) {
-          const r = Math.max(4, this.shockRadius * layer.rMul);
-          const alpha = layer.a * fade;
-          const grad = ctx!.createRadialGradient(this.x, this.y, 0, this.x, this.y, r);
+          const r = Math.max(4, radius * layer.rMul);
+          const alpha = layer.a;
+          const grad = octx.createRadialGradient(cx, cy, 0, cx, cy, r);
           grad.addColorStop(0, layer.color.replace('ALPHA', alpha.toFixed(3)));
           grad.addColorStop(0.7, layer.color.replace('ALPHA', (alpha * 0.4).toFixed(3)));
           grad.addColorStop(1, layer.color.replace('ALPHA', '0'));
-          ctx!.fillStyle = grad;
-          ctx!.beginPath();
-          ctx!.arc(this.x, this.y, r, 0, Math.PI * 2);
-          ctx!.fill();
+          octx.fillStyle = grad;
+          octx.beginPath();
+          octx.arc(cx, cy, r, 0, Math.PI * 2);
+          octx.fill();
         }
+        octx.filter = 'none';
+
+        return { canvas: off, size };
+      }
+
+      draw() {
+        const t = this.age / this.maxLife;
+        const fade = Math.max(0, 1 - t);
+        if (fade <= 0.01) return;
+
+        // Only re-bake the blurred sprite when the radius moves into a new
+        // 8px bucket, instead of running the blur filter every frame.
+        const bucket = Math.round(this.shockRadius / 8);
+        if (bucket !== this.bakedBucket || !this.bakedSprite) {
+          this.bakedBucket = bucket;
+          this.bakedSprite = this.bakeShockSprite(bucket * 8);
+        }
+        const sprite = this.bakedSprite;
+        ctx!.save();
+        ctx!.globalAlpha = fade;
+        ctx!.drawImage(sprite.canvas, this.x - sprite.size / 2, this.y - sprite.size / 2, sprite.size, sprite.size);
         ctx!.restore();
 
         if (t < 0.16) {
@@ -806,12 +820,6 @@ const ParticleBackground = () => {
       voidPockets = Array.from({ length: count }, () => new VoidPocket());
     }
 
-    let planets: Planet[] = [];
-    function buildPlanets() {
-      const count = 2 + Math.floor(Math.random() * 2); // 2-3, kept sparse
-      planets = Array.from({ length: count }, () => new Planet());
-    }
-
     let dustField: DustField | null = null;
     function buildDustField() {
       const count = Math.min(220, Math.max(60, Math.floor((W * H) / 9000)));
@@ -838,12 +846,33 @@ const ParticleBackground = () => {
       canvas!.style.height = `${H}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      // Static full-canvas gradients only depend on W/H, so build them once here
+      // instead of reconstructing a CanvasGradient object on every animation frame.
+      const baseGrad = ctx!.createLinearGradient(0, 0, W, H);
+      baseGrad.addColorStop(0, '#040414');
+      baseGrad.addColorStop(0.5, '#08071c');
+      baseGrad.addColorStop(1, '#020310');
+      baseGradient = baseGrad;
+
+      const cx = W / 2;
+      const cy = H / 2;
+      const maxDist = Math.hypot(cx, cy);
+      const vGrad = ctx!.createRadialGradient(cx, cy, maxDist * 0.12, cx, cy, maxDist * 1.0);
+      vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      vGrad.addColorStop(0.35, 'rgba(2,3,12,0.22)');
+      vGrad.addColorStop(0.7, 'rgba(2,3,12,0.48)');
+      vGrad.addColorStop(1, 'rgba(1,2,9,0.75)');
+      vignetteGradient = vGrad;
+
+      blobSpriteCache.clear();
       buildNebulae();
       buildVoidPockets();
       buildGalaxies();
-      buildPlanets();
       buildDustField();
       comets = [];
+      lineGridPool = [];
+      lineGridCols = 0;
+      lineGridRows = 0;
 
       const total = starCountFor(W, H);
       stars = [];
@@ -858,11 +887,26 @@ const ParticleBackground = () => {
       resizeTimeout = window.setTimeout(init, 150);
     }
 
+    // Reusable pool of arrays for the constellation-line spatial grid, so we
+    // avoid allocating cols*rows new arrays (and pushing into them) every frame.
+    let lineGridPool: Star[][] = [];
+    let lineGridCols = 0;
+    let lineGridRows = 0;
+
     function drawConstellationLines(px: number, py: number) {
       const cellSize = maxLineDistance;
       const cols = Math.max(1, Math.ceil(W / cellSize));
       const rows = Math.max(1, Math.ceil(H / cellSize));
-      const grid: Star[][] = new Array(cols * rows);
+
+      if (cols !== lineGridCols || rows !== lineGridRows || lineGridPool.length !== cols * rows) {
+        lineGridCols = cols;
+        lineGridRows = rows;
+        lineGridPool = new Array(cols * rows);
+        for (let i = 0; i < lineGridPool.length; i++) lineGridPool[i] = [];
+      } else {
+        for (let i = 0; i < lineGridPool.length; i++) lineGridPool[i].length = 0;
+      }
+      const grid = lineGridPool;
 
       const cellIndex = (x: number, y: number) => {
         const cx = Math.min(cols - 1, Math.max(0, Math.floor(x / cellSize)));
@@ -873,7 +917,7 @@ const ParticleBackground = () => {
       for (const s of stars) {
         if (s.isShooting || s.layer.parallax < 0.3) continue; // only the nearest layer constellates
         const idx = cellIndex(s.x, s.y);
-        (grid[idx] || (grid[idx] = [])).push(s);
+        grid[idx].push(s);
       }
 
       ctx!.lineWidth = 0.5;
@@ -882,14 +926,14 @@ const ParticleBackground = () => {
         for (let cx = 0; cx < cols; cx++) {
           const idx = cy * cols + cx;
           const cellStars = grid[idx];
-          if (!cellStars) continue;
+          if (cellStars.length === 0) continue;
 
           for (let ny = cy; ny <= cy + 1 && ny < rows; ny++) {
             const startNx = ny === cy ? cx : cx - 1;
             for (let nx = Math.max(0, startNx); nx <= cx + 1 && nx < cols; nx++) {
               const neighborIdx = ny * cols + nx;
               const neighborStars = grid[neighborIdx];
-              if (!neighborStars) continue;
+              if (neighborStars.length === 0) continue;
               const sameCell = neighborIdx === idx;
 
               for (let i = 0; i < cellStars.length; i++) {
@@ -976,15 +1020,8 @@ const ParticleBackground = () => {
     }
 
     function drawVignette() {
-      const cx = W / 2;
-      const cy = H / 2;
-      const maxDist = Math.hypot(cx, cy);
-      const grad = ctx!.createRadialGradient(cx, cy, maxDist * 0.12, cx, cy, maxDist * 1.0);
-      grad.addColorStop(0, 'rgba(0,0,0,0)');
-      grad.addColorStop(0.35, 'rgba(2,3,12,0.22)');
-      grad.addColorStop(0.7, 'rgba(2,3,12,0.48)');
-      grad.addColorStop(1, 'rgba(1,2,9,0.75)');
-      ctx!.fillStyle = grad;
+      if (!vignetteGradient) return;
+      ctx!.fillStyle = vignetteGradient;
       ctx!.fillRect(0, 0, W, H);
     }
 
@@ -1008,12 +1045,10 @@ const ParticleBackground = () => {
       parallax.y = approach(parallax.y, parallaxTarget.y, 0.02, dt);
 
       ctx!.globalCompositeOperation = 'source-over';
-      const baseGrad = ctx!.createLinearGradient(0, 0, W, H);
-      baseGrad.addColorStop(0, '#040414');
-      baseGrad.addColorStop(0.5, '#08071c');
-      baseGrad.addColorStop(1, '#020310');
-      ctx!.fillStyle = baseGrad;
-      ctx!.fillRect(0, 0, W, H);
+      if (baseGradient) {
+        ctx!.fillStyle = baseGradient;
+        ctx!.fillRect(0, 0, W, H);
+      }
 
       ctx!.globalCompositeOperation = 'lighter';
       for (const n of nebulae) {
@@ -1024,7 +1059,6 @@ const ParticleBackground = () => {
 
       ctx!.globalCompositeOperation = 'source-over';
       if (dustField) dustField.draw();
-      for (const p of planets) p.draw();
 
       for (const v of voidPockets) {
         v.update(now);
@@ -1035,7 +1069,9 @@ const ParticleBackground = () => {
       for (const c of comets) c.update(dt);
       ctx!.globalCompositeOperation = 'lighter';
       for (const c of comets) c.draw();
-      comets = comets.filter((c) => !c.done);
+      if (comets.length > 0 && comets.some((c) => c.done)) {
+        comets = comets.filter((c) => !c.done);
+      }
       ctx!.globalCompositeOperation = 'source-over';
 
       drawConstellationLines(parallax.x * DEPTH_LAYERS[2].parallax, parallax.y * DEPTH_LAYERS[2].parallax);
@@ -1063,7 +1099,9 @@ const ParticleBackground = () => {
       if (blasts.length > 0) {
         ctx!.globalCompositeOperation = 'lighter';
         for (const b of blasts) b.draw();
-        blasts = blasts.filter((b) => !b.done);
+        if (blasts.some((b) => b.done)) {
+          blasts = blasts.filter((b) => !b.done);
+        }
       }
 
       ctx!.globalCompositeOperation = 'source-over';

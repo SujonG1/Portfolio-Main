@@ -110,16 +110,16 @@ const AchievePrev = () => {
           })}
         </div>
       </div>
-      <div className="w-full h-full py-30 pr-12">
+      <div className="w-full h-full py-30 pr-12 overflow-x-hidden overflow-y-hidden">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-2/5 h-px bg-slate-400"></div>    
+          <div className="w-2/5 h-px bg-slate-400 mb-5"></div>    
           <h1 className="text-slate-400 text-4xl font-tangerine whitespace-nowrap w-1/5">
             Certifications
           </h1>
           <div className="w-2/5 h-px bg-slate-400"></div>
         </div>
         <Certifications />
-        <div className="w-full h-px bg-slate-400 mt-1"></div>
+        <div className="w-full h-px bg-slate-400 mt-5"></div>
       </div>
     </div>
   );
